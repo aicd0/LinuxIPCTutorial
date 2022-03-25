@@ -16,11 +16,11 @@ public:
         close_mmap();
     }
 
-    inline void *data() {
+    inline void *data() noexcept {
         return m_data;
     }
 
-    inline off_t size() {
+    inline off_t size() const noexcept {
         return m_size;
     }
 
