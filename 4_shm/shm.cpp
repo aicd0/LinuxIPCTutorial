@@ -1,4 +1,3 @@
-#include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/types.h>
 #include <fcntl.h>
@@ -6,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+#include "shared.h"
 
 using namespace std;
 
@@ -56,12 +56,7 @@ void read_note(SharedMemoryManager& manager, string& note) {
 }
 
 int main(int argc, char *argv[]) {
-    // Generate IPC token.
-    const char *tok_file_path = "_tmp";
-    int fd = open(tok_file_path, O_RDWR | O_CREAT, 0666);
-    close(fd);
-    key_t token = ftok(tok_file_path, 0);
-
+    key_t token = ipc_demo::generate_key("_tmp");
     auto manager = SharedMemoryManager(token, 4096); // 4kb fixed size
     write_note(manager, ""); // initialize buffer
 

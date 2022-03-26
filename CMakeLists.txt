@@ -5,7 +5,9 @@ project(${MAIN_PROJECT_NAME} VERSION 0.1.0)
 
 set(MAIN_OUTPUT_DIR ${CMAKE_BINARY_DIR}/bin)
 
+add_subdirectory(shared)
 add_subdirectory(1_pipe)
 add_subdirectory(2_fifo)
 add_subdirectory(3_mmap)
 add_subdirectory(4_shm)
+add_subdirectory(5_msg)

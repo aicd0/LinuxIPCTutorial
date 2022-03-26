@@ -41,7 +41,6 @@ void start_sender() {
         getline(cin, msg);
         write_msg(fd, msg);
         if (msg.empty()) break;
-        sleep(0.1);
     }
 
     cout << "Sender: connection closed." << endl;
