@@ -24,7 +24,7 @@ public:
         return m_size;
     }
 
-    bool reserve(off_t size);
+    int reserve(off_t size);
 
 private:
     void close_mmap();

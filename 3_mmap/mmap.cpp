@@ -6,8 +6,8 @@
 using namespace std;
 
 void write_note(MMapManager& manager, const string& note) {
-    bool success = manager.reserve(note.size() + 1);
-    if (!success) {
+    int ret = manager.reserve(note.size() + 1);
+    if (ret < 0) {
         cout << "Write failed." << endl;
         return;
     }
