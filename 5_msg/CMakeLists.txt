@@ -4,7 +4,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${MAIN_OUTPUT_DIR}/${PROJECT_NAME})
 SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread")
 
 link_libraries(
-  shared
+  common
 )
 
 include_directories(
@@ -14,8 +14,10 @@ include_directories(
 
 add_executable(msg_sender
   sender.cpp
+  utils.cpp
 )
 
 add_executable(msg_receiver
   receiver.cpp
+  utils.cpp
 )

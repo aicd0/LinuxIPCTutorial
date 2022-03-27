@@ -1,46 +1,12 @@
-#include <sys/shm.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <cstring>
 #include <iostream>
 #include <string>
-#include "shared.h"
+#include "common.h"
+#include "shm_manager.h"
 
 using namespace std;
 
-class SharedMemoryManager {
-private:
-    int m_shmid = 0;
-    void *m_data = nullptr;
-    size_t m_size = 0;
-
-public:
-    SharedMemoryManager(key_t key, size_t size) {
-        m_shmid = shmget(key, size, IPC_CREAT | 0666);
-        if (m_shmid == -1) throw exception();
-        m_data = shmat(m_shmid, NULL, 0);
-        m_size = size;
-    }
-
-    ~SharedMemoryManager() {
-        if (m_data) {
-            shmdt(m_data);
-        }
-        
-        shmctl(m_shmid, IPC_RMID, NULL);
-    }
-
-    void *data() noexcept {
-        return m_data;
-    }
-
-    size_t size() const noexcept {
-        return m_size;
-    }
-};
-
-void write_note(SharedMemoryManager& manager, const string& note) {
+void write_note(ipc_shared::SharedMemoryManager& manager, const string& note) {
     if (note.size() >= manager.size()) {
         cout << "Write failed. Do not have enough memory." << endl;
         return;
@@ -50,14 +16,14 @@ void write_note(SharedMemoryManager& manager, const string& note) {
     memcpy(data, note.data(), note.size() + 1);
 }
 
-void read_note(SharedMemoryManager& manager, string& note) {
+void read_note(ipc_shared::SharedMemoryManager& manager, string& note) {
     const char* data = reinterpret_cast<char*>(manager.data());
     note.assign(data);
 }
 
 int main(int argc, char *argv[]) {
-    key_t token = ipc_demo::generate_key("_tmp");
-    auto manager = SharedMemoryManager(token, 4096); // 4kb fixed size
+    key_t token = ipc_shared::generate_key("_tmp");
+    ipc_shared::SharedMemoryManager manager(token, 4096); // 4kb fixed size
     write_note(manager, ""); // initialize buffer
 
     for (;;) {

@@ -2,35 +2,23 @@
 #include <unistd.h>
 #include <cstring>
 #include <iostream>
-#include "msg.h"
-#include "shared.h"
+#include "utils.h"
+#include "common.h"
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    key_t token = ipc_demo::generate_key("_tmp");
+    key_t token = ipc_shared::generate_key("_tmp");
     int msqid = msgget(token, IPC_CREAT | 0666);
     if (msqid == -1) throw exception();
-    msg_header_t header;
 
     for (;;) {
         cout << "Type a message: ";
-        string text;
-        getline(cin, text);
-        
-        // Assemble messages.
-        size_t size = text.size() + 1;
-        header.size = size;
-        void* content_buf = malloc(sizeof(msg_content_t) + size);
-        msg_content_t* content = new (content_buf)msg_content_t;
-        memcpy(reinterpret_cast<char*>(content) + sizeof(msg_content_t), text.data(), size);
-
-        // Send messages.
-        msgsnd(msqid, &header, msg_header_t::msg_size(), 0);
-        msgsnd(msqid, content, size, 0);
-        
-        free(content_buf);
-        if (text.empty()) break;
+        string msg;
+        getline(cin, msg);
+        int res = send_message(msqid, msg);
+        if (res == -1) cout << "Failed to send message. Returns " << res << "." << endl;
+        if (msg.empty()) break;
     }
 
     msgctl(msqid, IPC_RMID, 0);
