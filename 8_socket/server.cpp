@@ -12,8 +12,7 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
-{
+int start_server() {
     // Create a socket.
     // For details see: https://linux.die.net/man/2/socket
     int fd_listen = socket(PF_INET, SOCK_CLOEXEC | SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
@@ -22,7 +21,7 @@ int main(int argc, char *argv[])
     // Get and set options on sockets.
     // For details see: https://linux.die.net/man/2/setsockopt
     {
-        bool reuse_addr = true;
+        int reuse_addr = 1;
         assert(setsockopt(fd_listen, SOL_SOCKET, SO_REUSEADDR, &reuse_addr, sizeof(reuse_addr)) >= 0);
     }
 
@@ -59,6 +58,8 @@ int main(int argc, char *argv[])
 
     vector<struct epoll_event> events(16); // epoll events
     unordered_map<int, string> msgs; // messages to be sent to clients
+
+    cout << "Server listening..." << endl;
 
     for (;;) {
         int sockets_ready = epoll_wait(fd_epoll, &*events.begin(), static_cast<int>(events.size()), -1);
@@ -123,7 +124,16 @@ int main(int argc, char *argv[])
                     }
 
                     if (ret == 0) { // EOF
-                        cout << "Connection closed." << endl;
+                        cout << "Connection closed.";
+
+                        struct sockaddr_in peer_addr;
+                        socklen_t addr_len = sizeof(peer_addr);
+                        if (getpeername(fd_conn, (struct sockaddr*)&peer_addr, &addr_len) >= 0) {
+                            cout << " IP=" << inet_ntoa(peer_addr.sin_addr) <<
+                                ", port=" << ntohs(peer_addr.sin_port) << ".";
+                        }
+
+                        cout << endl;
                         close(fd_conn);
                         epoll_ctl(fd_epoll, EPOLL_CTL_DEL, fd_conn, &event);
                         continue;
@@ -132,7 +142,7 @@ int main(int argc, char *argv[])
                     cout << "Read: " << buf << endl;
                     
                     string reply(buf);
-                    reply = "<Server begin> " + reply + "<Server end>";
+                    reply = "<Server begin>" + reply + "<Server end>";
                     msgs[fd_conn] = reply;
 
                     struct epoll_event mod_event;
@@ -170,4 +180,11 @@ int main(int argc, char *argv[])
             }
         }
     }
+
+    return 0;
+}
+
+int main(int argc, char *argv[])
+{
+    start_server();
 }

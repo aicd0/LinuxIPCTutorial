@@ -9,8 +9,7 @@
 
 using namespace std;
 
-int main(int argc, char *argv[])
-{
+int start_client() {
     // Create a socket.
     int fd_conn = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP);
     assert(fd_conn >= 0);
@@ -24,7 +23,10 @@ int main(int argc, char *argv[])
 
     // Open a connection on socket.
     // For details see: https://linux.die.net/man/3/connect
-	assert(connect(fd_conn, (struct sockaddr*)&server_addr, sizeof(server_addr)) >= 0);
+    if (connect(fd_conn, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+        cout << "Failed to establish connection to server." << endl;
+        return -1;
+    }
 
     // Retrieve the locally-bound name of the specified socket.
     // For details see: https://linux.die.net/man/3/getsockname
@@ -33,7 +35,7 @@ int main(int argc, char *argv[])
 	assert(getsockname(fd_conn, (struct sockaddr*)&local_addr, &addr_len) >= 0);
 
     cout << "Connection established: IP=" << inet_ntoa(local_addr.sin_addr) <<
-		" ,port=" << ntohs(local_addr.sin_port) << endl;
+		", port=" << ntohs(local_addr.sin_port) << "." << endl;
 
 	char buf[MAX_BUFFER_SIZE] = {0};
 
@@ -58,4 +60,10 @@ int main(int argc, char *argv[])
 	}
 
 	close(fd_conn);
+    return 0;
+}
+
+int main(int argc, char *argv[])
+{
+    start_client();
 }
