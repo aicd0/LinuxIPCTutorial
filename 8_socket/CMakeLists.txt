@@ -8,9 +8,9 @@ include_directories(
 )
 
 add_executable(socket_server
-  server.cpp
+  server.cpp buffer_reader.cpp shared.cpp
 )
 
 add_executable(socket_client
-  client.cpp
+  client.cpp buffer_reader.cpp shared.cpp
 )

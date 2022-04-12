@@ -5,7 +5,7 @@
 #include <cassert>
 #include <cstring>
 #include <iostream>
-#include "shared.h"
+#include "buffer_reader.h"
 
 using namespace std;
 
@@ -37,7 +37,8 @@ int start_client() {
     cout << "Connection established: IP=" << inet_ntoa(local_addr.sin_addr) <<
 		", port=" << ntohs(local_addr.sin_port) << "." << endl;
 
-	char buf[MAX_BUFFER_SIZE] = {0};
+    char buf[MAX_BUFFER_SIZE];
+    BufferReader reader;
 
 	for (;;)
 	{
@@ -46,17 +47,19 @@ int start_client() {
         getline(cin, msg_send);
         if (msg_send.empty()) break;
 
-        if (msg_send.size() + 1 > MAX_BUFFER_SIZE) {
-            cout << "Write failed. Message too long." << endl;
-            continue;
-        }
-
-        // Write data.
-		write(fd_conn, msg_send.data(), msg_send.size() + 1);
+        assert(write_msg(fd_conn, msg_send) >= 0);
 
         // Read data.
-		read(fd_conn, buf, MAX_BUFFER_SIZE);
-        cout << "Read: " << buf << endl;
+        while (reader.empty()) {
+            ssize_t size = read(fd_conn, buf, MAX_BUFFER_SIZE);
+            assert(size >= 0);
+            reader.read(buf, size);
+        }
+
+        const vector<char>& complete_buf = reader.front();
+        string msg_recv(complete_buf.data(), complete_buf.size());
+        reader.pop();
+        cout << "Read: " << msg_recv << endl;
 	}
 
 	close(fd_conn);
