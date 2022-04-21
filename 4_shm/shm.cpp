@@ -25,6 +25,7 @@ int main(int argc, char *argv[]) {
   key_t token = ipc_shared::generate_key("_tmp");
   ipc_shared::SharedMemoryManager manager(token, 4096); // 4kb fixed size
   write_note(manager, ""); // initialize buffer
+  std::cout << "Shared memory address: " << manager.data() << std::endl;
 
   for (;;) {
     cout << "0 - read, 1 - write: ";
